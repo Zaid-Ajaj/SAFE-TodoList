@@ -1,0 +1,6 @@
+LiteDB.FSharp
+group Server
+FSharp.Core
+Suave
+Fable.Remoting.Suave
+Microsoft.DotNet.Watcher.Tools

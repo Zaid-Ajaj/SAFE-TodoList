@@ -1,0 +1,29 @@
+source https://www.nuget.org/api/v2
+
+nuget LiteDB.FSharp
+storage:none
+
+group Server
+  source https://api.nuget.org/v3/index.json
+
+  nuget FSharp.Core
+  nuget Suave
+  nuget Fable.Remoting.Suave
+
+  clitool Microsoft.DotNet.Watcher.Tools
+
+group Client
+  source https://api.nuget.org/v3/index.json
+
+  nuget Fable.Core
+  nuget Fable.Elmish.Debugger
+  nuget Fable.Elmish.React
+  nuget Fable.Elmish.HMR
+  nuget Fable.Remoting.Client
+
+  clitool dotnet-fable
+
+group Build
+  source https://api.nuget.org/v3/index.json
+
+  nuget FAKE
