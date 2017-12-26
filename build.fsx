@@ -1,4 +1,5 @@
 #r @"packages/build/FAKE/tools/FakeLib.dll"
+open System.Threading.Tasks
 
 open System
 
@@ -45,6 +46,13 @@ Target "Build" (fun () ->
   run dotnetCli "build" serverPath
   run dotnetCli "fable webpack -- -p" clientPath
 )
+
+Target "BuildParallel" <| fun _ ->
+  [ async { run dotnetCli "build" serverPath }
+    async { run dotnetCli "fable webpack -- -p" clientPath } ]
+  |> Async.Parallel
+  |> Async.RunSynchronously
+  |> ignore
 
 Target "RunServer" <| fun _ ->
   run dotnetCli "run" serverPath
