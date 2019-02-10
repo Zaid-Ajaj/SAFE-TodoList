@@ -1,4 +1,4 @@
-# SAFE-TodoList
+# SAFE-TodoList [![Build Status](https://travis-ci.org/Zaid-Ajaj/SAFE-TodoList.svg?branch=master)](https://travis-ci.org/Zaid-Ajaj/SAFE-TodoList)
 
 The simplest Todo app showcasing a client-server application written entirely in F# using:
  - [Fable](https://github.com/fable-compiler/Fable) for compiling F# code to javascript
