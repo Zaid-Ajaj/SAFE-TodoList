@@ -7,6 +7,8 @@ open Fake
 
 let serverPath = "./src/Server" |> FullName
 let clientPath = "./src/Client" |> FullName
+let cwd = __SOURCE_DIRECTORY__
+let npm = "npm"
 
 let platformTool tool winTool =
   let tool = if isUnix then tool else winTool
@@ -14,28 +16,31 @@ let platformTool tool winTool =
   |> ProcessHelper.tryFindFileOnPath
   |> function Some t -> t | _ -> failwithf "%s not found" tool
 
-let nodeTool = platformTool "node" "node.exe"
+let nodeTool = "node"
 
 let mutable dotnetCli = "dotnet"
 
-let run cmd args workingDir =
-  let result =
-    ExecProcess (fun info ->
-      info.FileName <- cmd
-      info.WorkingDirectory <- workingDir
-      info.Arguments <- args) TimeSpan.MaxValue
-  if result <> 0 then failwithf "'%s %s' failed" cmd args
+let run fileName args workingDir =
+    printfn "CWD: %s" workingDir
+    let fileName, args =
+        if isUnix
+        then fileName, args else "cmd", ("/C " + fileName + " " + args)
+    let ok =
+        execProcess (fun info ->
+             info.FileName <- fileName
+             info.WorkingDirectory <- workingDir
+             info.Arguments <- args) TimeSpan.MaxValue
+    if not ok then failwith (sprintf "'%s> %s %s' task failed" workingDir fileName args)
 
 Target "Clean" DoNothing
 
 
 Target "InstallClient" (fun _ ->
   printfn "Node version:"
-  run nodeTool "--version" __SOURCE_DIRECTORY__
+  run nodeTool "--version" cwd
   printfn "Yarn version:"
-  run "npm" "--version" __SOURCE_DIRECTORY__
-  run "npm" "install" __SOURCE_DIRECTORY__
-  run dotnetCli "restore" clientPath
+  run "yarn" "--version" cwd
+  run "yarn" "install" cwd
 )
 
 Target "RestoreServer" (fun () -> 
@@ -43,13 +48,15 @@ Target "RestoreServer" (fun () ->
 )
 
 Target "Build" (fun () ->
+  // build server
   run dotnetCli "build" serverPath
-  run dotnetCli "fable webpack -- -p" clientPath
+  // build client
+  run npm "run build" cwd
 )
 
 Target "BuildParallel" <| fun _ ->
   [ async { run dotnetCli "build" serverPath }
-    async { run dotnetCli "fable webpack -- -p" clientPath } ]
+    async { run npm "run build" cwd } ]
   |> Async.Parallel
   |> Async.RunSynchronously
   |> ignore
@@ -59,12 +66,8 @@ Target "RunServer" <| fun _ ->
 
 
 Target "RunDevMode" (fun () ->
-  let server = async {
-    run dotnetCli "watch run" serverPath
-  }
-  let client = async {
-    run dotnetCli "fable webpack-dev-server" clientPath
-  }
+  let server = async { run dotnetCli "watch run" serverPath }
+  let client = async { run npm "start" cwd }
   let browser = async {
     Threading.Thread.Sleep 5000
     Diagnostics.Process.Start "http://localhost:8080" |> ignore

@@ -10,7 +10,9 @@ open Fable.Remoting.Client
 // =================================
 
 let api : ITodoProtocol = 
-    Proxy.createWithBuilder<ITodoProtocol> Route.builder
+    Remoting.createApi()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.buildProxy<ITodoProtocol>
 
 // ===========================================
 // Create Elmish commands that map server calls to client messages,
@@ -49,7 +51,7 @@ let addTodo text =
     Cmd.ofAsync
       api.addTodo (Description(text))
       (function 
-        | Some addedTodo -> LoadTodoItems
+        | Some addedTodo -> TodoAdded addedTodo
         | None -> AddTodoFailed)
       (fun ex -> AddTodoFailed)
 

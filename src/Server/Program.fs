@@ -2,6 +2,7 @@
 open System.Net
 open Suave
 open Shared
+open Fable.Remoting.Server
 open Fable.Remoting.Suave
 
 
@@ -13,14 +14,14 @@ let config =
       homeFolder = Some clientPath
       bindings = [ HttpBinding.create HTTP (IPAddress.Parse "0.0.0.0") port ] }
 
-let webApp = 
+let webApi = 
   let todoProtocol = WebApp.createUsingInMemoryStorage()
   WebApp.seedIntitialData(todoProtocol)
-  FableSuaveAdapter.webPartWithBuilderFor todoProtocol Route.builder
+  Remoting.createApi()
+  |> Remoting.fromValue todoProtocol
+  |> Remoting.withRouteBuilder Route.builder
+  |> Remoting.buildWebPart  
 
-let webPart =
-  choose  
-   [ webApp
-     Files.browseHome ]
-
-startWebServer config webPart
+let webApp = choose  [ webApi; Files.browseHome ]
+    
+startWebServer config webApp

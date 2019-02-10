@@ -18,19 +18,28 @@ let update (msg: Msg) (prevState: State) =
     | SetNewTextDescription text ->
         let nextState = { prevState with NewTodoDescription = Some text }
         nextState, Cmd.none
+
     | LoadTodoItems -> 
         prevState, Server.loadAllTodos()
+
     | AddTodo ->
         match prevState.NewTodoDescription with
         | None -> prevState, Cmd.none
-        | Some text ->
-            prevState, Server.addTodo text
+        | Some text -> prevState, Server.addTodo text
+
+    | TodoAdded todoItem -> 
+        let nextTodoItems = List.append prevState.TodoItems [todoItem] 
+        let nextState = { prevState with TodoItems = nextTodoItems; NewTodoDescription = None }
+        nextState, Cmd.none
+            
     | TodoItemsLoaded items -> 
         let nextState = { prevState with TodoItems = items }
         nextState, Cmd.none
+
     | ToggleCompleted id -> 
         prevState, Server.toggleCompleted id
+
     | DeleteTodo id ->
         prevState, Server.deleteTodo id
-    | _ -> 
-        prevState, Cmd.none
+
+    | _ -> prevState, Cmd.none
