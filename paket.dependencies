@@ -4,6 +4,7 @@ storage:none
 
 group Server
   source https://api.nuget.org/v3/index.json
+  storage: none
 
   nuget FSharp.Core
   nuget Suave 2.5.0
